@@ -1,5 +1,6 @@
 package ba.unsa.etf.admin_service.service;
 
+import ba.unsa.etf.admin_service.client.RemoteUserClient;
 import ba.unsa.etf.admin_service.dto.UserSuspensionDTO;
 import ba.unsa.etf.admin_service.exception.ResourceNotFoundException;
 import ba.unsa.etf.admin_service.model.UserSuspension;
@@ -16,8 +17,15 @@ import java.util.stream.Collectors;
 public class UserSuspensionService {
 
     private final UserSuspensionRepository suspensionRepository;
+    private final RemoteUserClient remoteUserClient;
 
     public UserSuspensionDTO.Response create(UserSuspensionDTO.Request req) {
+        // Task 5: fail-open verifikacija — ako user-service nije dostupan, nastavljamo.
+        // Ako user-service eksplicitno kaže da korisnik ne postoji, vraćamo 400.
+        if (!remoteUserClient.userExists(req.getUserId())) {
+            throw new ResourceNotFoundException("Korisnik sa ID " + req.getUserId() + " ne postoji u sistemu");
+        }
+
         UserSuspension suspension = UserSuspension.builder()
                 .userId(req.getUserId())
                 .suspendedByUserId(req.getSuspendedByUserId())
