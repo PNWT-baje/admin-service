@@ -5,6 +5,7 @@ import ba.unsa.etf.admin_service.model.ReportReason;
 import ba.unsa.etf.admin_service.model.ReportStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
@@ -47,4 +49,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByReportedPostId(@Param("postId") Long postId);
 
     List<Report> findByReviewedByUserId(Long adminUserId);
+
+    // EntityGraph — Task 4: ucitava notes u jednom JOIN query-u (N+1 fix)
+    @EntityGraph(attributePaths = {"notes"})
+    Optional<Report> findWithNotesById(Long id);
 }
