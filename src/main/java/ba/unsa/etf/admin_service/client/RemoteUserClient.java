@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
-
 import java.util.Map;
 
 @Component
@@ -33,7 +31,7 @@ public class RemoteUserClient {
             return body != null && Boolean.TRUE.equals(body.get("exists"));
         } catch (HttpClientErrorException.NotFound e) {
             return false;
-        } catch (RestClientException e) {
+        } catch (Exception e) {
             log.warn("user-service nedostupan za userId={}: {} — admin operacija nastavlja (fail-open)",
                     userId, e.getMessage());
             return true;
