@@ -9,7 +9,11 @@ import lombok.NoArgsConstructor;
 import ba.unsa.etf.admin_service.model.ReportReason;
 import ba.unsa.etf.admin_service.model.ReportStatus;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "reports")
@@ -55,6 +59,11 @@ public class Report {
 
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+
+    // EntityGraph demo — Task 4: kolekcija admin napomena na reportu
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ReportNote> notes = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
