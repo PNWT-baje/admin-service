@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,22 +19,23 @@ public class AnalyticsEventController {
 
     private final AnalyticsEventService analyticsEventService;
 
-    // POST /api/analytics
+    /** Log a single analytics event — admin and analyst. */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<AnalyticsEventDTO.Response> create(@Valid @RequestBody AnalyticsEventDTO.Request req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(analyticsEventService.create(req));
     }
 
-    // GET /api/analytics?eventType=POST_VIEW
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<List<AnalyticsEventDTO.Response>> getAll(
             @RequestParam(required = false) EventType eventType) {
         if (eventType != null) return ResponseEntity.ok(analyticsEventService.getByEventType(eventType));
         return ResponseEntity.ok(analyticsEventService.getAll());
     }
 
-    // GET /api/analytics/paged?page=0&size=10&sortBy=createdAt&direction=desc&eventType=POST_VIEW
     @GetMapping("/paged")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<PagedResponseDTO<AnalyticsEventDTO.Response>> getAllPaged(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -43,47 +45,49 @@ public class AnalyticsEventController {
         return ResponseEntity.ok(analyticsEventService.getAllPaged(page, size, sortBy, direction, eventType));
     }
 
-    // GET /api/analytics/{id}
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<AnalyticsEventDTO.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(analyticsEventService.getById(id));
     }
 
-    // GET /api/analytics/user/{userId}
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<List<AnalyticsEventDTO.Response>> getByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(analyticsEventService.getByUserId(userId));
     }
 
-    // GET /api/analytics/recent?hours=24
     @GetMapping("/recent")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<List<AnalyticsEventDTO.Response>> getRecent(
             @RequestParam(defaultValue = "24") int hours) {
         return ResponseEntity.ok(analyticsEventService.getRecentEvents(hours));
     }
 
-    // GET /api/analytics/stats
     @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<AnalyticsStatsDTO.EventTypeCount> getStats() {
         return ResponseEntity.ok(analyticsEventService.getStats());
     }
 
-    // GET /api/analytics/top-users?topN=10
     @GetMapping("/top-users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<List<AnalyticsStatsDTO.ActiveUser>> getTopUsers(
             @RequestParam(defaultValue = "10") int topN) {
         return ResponseEntity.ok(analyticsEventService.getMostActiveUsers(topN));
     }
 
-    // POST /api/analytics/batch
+    /** Batch insert — admin-only mass import. */
     @PostMapping("/batch")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AnalyticsStatsDTO.BatchResponse> batchCreate(
             @Valid @RequestBody AnalyticsStatsDTO.BatchRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(analyticsEventService.batchCreate(req));
     }
 
-    // DELETE /api/analytics/{id}
+    /** Delete analytics event permanently — admin only. */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         analyticsEventService.delete(id);
         return ResponseEntity.noContent().build();

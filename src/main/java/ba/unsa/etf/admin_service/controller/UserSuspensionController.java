@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,38 +19,41 @@ public class UserSuspensionController {
 
     private final UserSuspensionService suspensionService;
 
-    // POST /api/suspensions
+    /** Suspend a user — moderators and above. */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<UserSuspensionDTO.Response> create(@Valid @RequestBody UserSuspensionDTO.Request req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(suspensionService.create(req));
     }
 
-    // GET /api/suspensions
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<UserSuspensionDTO.Response>> getAll() {
         return ResponseEntity.ok(suspensionService.getAll());
     }
 
-    // GET /api/suspensions/{id}
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<UserSuspensionDTO.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(suspensionService.getById(id));
     }
 
-    // GET /api/suspensions/user/{userId}
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<List<UserSuspensionDTO.Response>> getByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(suspensionService.getByUserId(userId));
     }
 
-    // GET /api/suspensions/user/{userId}/active
+    /** Check if a user is currently suspended — accessible to all roles (needed by other services). */
     @GetMapping("/user/{userId}/active")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Boolean>> isActive(@PathVariable Long userId) {
         return ResponseEntity.ok(Map.of("suspended", suspensionService.isUserSuspended(userId)));
     }
 
-    // DELETE /api/suspensions/{id}
+    /** Lift a suspension — moderators and above. */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         suspensionService.delete(id);
         return ResponseEntity.noContent().build();
